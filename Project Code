@@ -1,0 +1,81 @@
+# PGI Data Visualization Project
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Set styles
+sns.set(style="whitegrid")
+plt.rcParams["figure.figsize"] = (12, 6)
+
+# Step 1: Load Dataset
+df = pd.read_csv(r"C:\Users\yuvan\Downloads\District_PGI_Table_1.csv")  
+df.columns = df.columns.str.strip()  # Clean column names
+
+# Step 2: Rename Columns for Simplicity
+
+df = df.rename(columns={
+    "District score 2021-22 - Category - 1.Outcome (290)": "Outcome",
+    "District score 2021-22 - Category - 2. ECT (90)": "ECT",
+    "District score 2021-22 - Category - 3. IF&SE (51)": "IF_SE",
+    "District score 2021-22 - Category - 4.SS&CP (35)": "SS_CP",
+    "District score 2021-22 - Category - 5. DL (50)": "DL",
+    "District score 2021-22 - Category - 6. GP (84)": "GP",
+    "District score 2021-22 - Overall": "Overall_Score"
+})
+
+# Step 3: Top 10 Districts by Overall Score
+
+top10 = df.sort_values(by="Overall_Score", ascending=False).head(10)
+
+plt.figure(figsize=(12, 6))
+sns.barplot(data=top10, x="District", y="Overall_Score", hue="State/UT", dodge=False)
+plt.title("Top 10 Districts by Overall PGI Score (2021-22)")
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
+
+# Step 4: Boxplot - Score Distribution by Category
+
+score_cols = ["Outcome", "ECT", "IF_SE", "SS_CP", "DL", "GP"]
+df_melt = df.melt(value_vars=score_cols, var_name="Category", value_name="Score")
+
+plt.figure(figsize=(12, 6))
+sns.boxplot(data=df_melt, x="Category", y="Score", palette="pastel")
+plt.title("Distribution of PGI Scores by Category")
+plt.tight_layout()
+plt.show()
+
+# Step 5: Grade Distribution (Countplot)
+
+plt.figure(figsize=(8, 5))
+sns.countplot(data=df, x="Grade", order=df["Grade"].value_counts().index, palette="Set2")
+plt.title("Distribution of PGI Grades Across Districts")
+plt.xlabel("PGI Grade")
+plt.ylabel("Number of Districts")
+plt.tight_layout()
+plt.show()
+
+# Step 6: State-wise Category Score Heatmap
+
+state_avg = df.groupby("State/UT")[score_cols].mean()
+
+plt.figure(figsize=(14, 10))
+sns.heatmap(state_avg, cmap="YlOrRd", annot=True, fmt=".1f", linewidths=0.5)
+plt.title("State-wise Average PGI Category Scores")
+plt.tight_layout()
+plt.show()
+
+# Step 7: Correlation Heatmap
+
+plt.figure(figsize=(10, 6))
+corr = df[score_cols + ["Overall_Score"]].corr()
+sns.heatmap(corr, annot=True, cmap="YlGnBu", fmt=".2f")
+plt.title("Correlation Heatmap of PGI Categories")
+plt.tight_layout()
+plt.show()
+
+# Step 8: (Optional) Pairplot - Relationships between scores
+
+sns.pairplot(df[score_cols + ["Overall_Score"]])
+plt.suptitle("Pairwise Relationships Between PGI Categories", y=1.02)
+plt.show()
